@@ -3,4 +3,4 @@ Prototipo de visión por computadora que permite el conteo en "tiempo real" de l
 
 **Nota importante:** Este primer prototipo no hace un conteo de usuarios constante a través de un mecanismo de grabación, utiliza un video pre-grabado y devuelve el análisis en otro video donde se muestra el conteo. 
 
-
+https://github.com/AnsharShampoo/people_counter/blob/main/media/test_video.mp4
