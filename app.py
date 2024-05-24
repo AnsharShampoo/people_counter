@@ -35,6 +35,7 @@ first_time_observed={}
 counted_tracks = set()
 count = 100
 delimiter = 490
+frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 # Mientras haya un frame por analizar entramos al bucle
 while ret:
     i+=1
@@ -57,7 +58,7 @@ while ret:
     tracker.update(frame, detections) # Actualizamos nuestro tracker
     
     #Dibujamos en el video el delimitador de entrada y salida.
-    cv2.line(frame, (0,delimiter), (960,delimiter), (0,255,0), 3)
+    cv2.line(frame, (0,delimiter), (frame_width, delimiter), (0,255,0), 3)
 
     #Iteramos sobre cada persona de la que tenemos registro en tracker y dibujamos una bounding-box 
     #enmarcandolos en este frame.
