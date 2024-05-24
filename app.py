@@ -7,8 +7,8 @@ from ultralytics import YOLO #versión optimizada del modelo de detección de im
 from tracker import Tracker #clase tracker para hacer el seguimiento de objetos
 
 # Video a tratar:
-video_path = os.path.join('.', 'media', 'people.mp4')
-video_out_path = os.path.join('.', 'media', 'out.mp4')
+video_path = os.path.join('.', 'media', 'subway_stairs.mp4')
+video_out_path = os.path.join('.', 'media', 'out_stairs.mp4')
 cap = cv2.VideoCapture(video_path) #Abrimos el video mediante cv2
 
 # El objeto cap contiene dos elementos, ret (true cuando se lee el frame de forma correcta) y frame (el fotograma actual)
@@ -29,6 +29,12 @@ tracker = Tracker() #Inicializamos clase tracker
 colors = [(random.randint(0,255), random.randint(0,255), random.randint(0,255)) for j in range(10)]
 i=0
 
+# Diccionario que marca el la coordenada x del pixel inferior donde se dibujó por primera vez la bounding-box de cierta persona (track_id:coord_x)
+first_time_observed={}
+# Set que nos permite saber si cierta persona ya se contabilizó a partir de su track_id}
+counted_tracks = set()
+count = 100
+delimiter = 490
 # Mientras haya un frame por analizar entramos al bucle
 while ret:
     i+=1
@@ -50,6 +56,9 @@ while ret:
         
     tracker.update(frame, detections) # Actualizamos nuestro tracker
     
+    #Dibujamos en el video el delimitador de entrada y salida.
+    cv2.line(frame, (0,delimiter), (960,delimiter), (0,255,0), 3)
+
     #Iteramos sobre cada persona de la que tenemos registro en tracker y dibujamos una bounding-box 
     #enmarcandolos en este frame.
     for track in tracker.tracks:
@@ -57,7 +66,17 @@ while ret:
         x1, y1, x2, y2 = bbox
         track_id = track.track_id
         cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (colors[track_id % len(colors)]), 3)
-
+        #Hacemos el conteo del track dependiendo de la posición en la que se vio por primera vez, su posición actual y el delimitador:
+        if(track_id not in counted_tracks and track_id not in first_time_observed):
+            first_time_observed[track_id] = y2
+        elif(track_id not in counted_tracks and track_id in first_time_observed and delimiter>first_time_observed[track_id] and y2>=delimiter):
+            count+=1
+            counted_tracks.add(track_id)
+        elif(track_id not in counted_tracks and track_id in first_time_observed and delimiter<first_time_observed[track_id] and y2<=delimiter):
+            count-=1
+            counted_tracks.add(track_id)
+    #Dibujamos el delimitador
+    cv2.putText(frame, f'personas: {count}', (10, 390), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255) , 3, cv2.LINE_AA)        
     #Mostramos el frame mientras procesamos para asegurarnos de que todo va como debe.
     cv2.imshow('frame', frame)
     #Esperamos 25ms para que de tiempo de ver lo que pasa en el procesamiento
